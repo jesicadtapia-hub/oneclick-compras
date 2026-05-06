@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Órdenes pasadas de fecha — Oneclick</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+<script>
+  (function(){
+    emailjs.init('AbfSfwXhL6-yDCWoO');
+  })();
+</script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#000;--bg2:#111;--bg3:#1c1c1e;--bg4:#2c2c2e;
+  --border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.16);
+  --text:#f5f5f7;--text2:#a1a1a6;--text3:#48484a;
+  --red:#ff453a;--amber:#ff9f0a;--green:#32d74b;--blue:#0a84ff;
+  --radius:12px;--radius-sm:8px;
+}
+html{background:var(--bg)}
+body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+nav{position:sticky;top:0;z-index:50;background:rgba(0,0,0,0.85);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-bottom:1px solid var(--border);padding:0 2rem;height:52px;display:flex;align-items:center;justify-content:space-between}
+.nav-logo{font-size:16px;font-weight:600;letter-spacing:-0.3px;color:var(--text)}
+.nav-logo span{color:var(--text2);font-weight:300}
+.nav-right{display:flex;gap:8px;align-items:center}
+
+.btn{font-family:inherit;font-size:13px;font-weight:500;padding:7px 16px;border-radius:980px;cursor:pointer;border:1px solid var(--border2);background:transparent;color:var(--text2);transition:all 0.15s;white-space:nowrap}
+.btn:hover{background:var(--bg3);color:var(--text)}
+.btn-solid{background:var(--text);color:#000;border-color:transparent;font-weight:600}
+.btn-solid:hover{background:#ddd}
+.btn-blue{background:var(--blue);color:#fff;border-color:transparent}
+.btn-blue:hover{background:#0070e0}
+
+main{max-width:1400px;margin:0 auto;padding:2rem 2rem 4rem}
+
+/* UPLOAD */
+.upload-zone{border:1px solid var(--border2);border-radius:var(--radius);padding:3.5rem 2rem;text-align:center;cursor:pointer;background:var(--bg2);transition:background 0.15s,border-color 0.15s;margin-bottom:2rem}
+.upload-zone:hover{background:var(--bg3);border-color:rgba(255,255,255,0.25)}
+.upload-icon{width:52px;height:52px;margin:0 auto 1rem;background:var(--bg3);border-radius:14px;display:flex;align-items:center;justify-content:center;border:1px solid var(--border2)}
+.upload-icon svg{width:22px;height:22px;stroke:var(--text2);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.upload-zone h2{font-size:17px;font-weight:500;margin-bottom:5px;letter-spacing:-0.2px}
+.upload-zone p{font-size:13px;color:var(--text3)}
+
+/* PANELS */
+.panel{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem 1.5rem;margin-bottom:1.25rem}
+.section-title{font-size:11px;font-weight:600;color:var(--text2);letter-spacing:0.07em;text-transform:uppercase;margin-bottom:12px}
+
+/* PO NAME BAR */
+.po-bar{display:flex;align-items:center;gap:10px;margin-bottom:1.25rem;padding:10px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm)}
+.po-bar label{font-size:12px;color:var(--text2);white-space:nowrap;font-weight:500}
+.po-bar input{flex:1;max-width:280px;font-family:inherit;font-size:13px;padding:6px 10px;border-radius:6px;border:1px solid var(--border2);background:var(--bg3);color:var(--text);outline:none}
+.po-bar input:focus{border-color:var(--blue)}
+.po-bar .po-hint{font-size:11px;color:var(--text3)}
+
+/* PROV GRID */
+.prov-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px;margin-top:10px}
+.prov-row{display:flex;align-items:center;gap:10px;padding:7px 12px;background:var(--bg3);border-radius:var(--radius-sm);border:1px solid var(--border)}
+.prov-name{flex:1;font-size:13px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.prov-input{width:58px;font-size:13px;text-align:center;padding:4px 6px;border-radius:6px;border:1px solid var(--border2);background:var(--bg4);color:var(--text);font-family:inherit}
+.prov-input:focus{outline:none;border-color:var(--blue)}
+.prov-label{font-size:11px;color:var(--text3);white-space:nowrap}
+.new-pill{font-size:10px;font-weight:600;background:rgba(255,159,10,0.15);color:var(--amber);padding:2px 7px;border-radius:980px}
+
+/* STATS */
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-bottom:1.25rem}
+.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:.9rem 1.1rem}
+.stat-label{font-size:11px;color:var(--text3);margin-bottom:5px}
+.stat-val{font-size:26px;font-weight:300;letter-spacing:-1px}
+.stat-val.red{color:var(--red)}.stat-val.amber{color:var(--amber)}.stat-val.blue{color:var(--blue)}
+
+/* FILTERS BAR */
+.filters{display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap;align-items:center}
+.filters select,.filters input[type=text]{font-family:inherit;font-size:13px;padding:6px 12px;border-radius:980px;border:1px solid var(--border2);background:var(--bg2);color:var(--text);outline:none;-webkit-appearance:none}
+.filters select{padding-right:28px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23888' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center}
+.search-wrap{position:relative;display:flex;align-items:center}
+.search-wrap svg{position:absolute;left:10px;width:13px;height:13px;stroke:var(--text3);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+.search-wrap input{padding-left:28px!important;border-radius:980px;min-width:180px}
+.filter-chip{display:inline-flex;align-items:center;gap:5px;font-size:12px;padding:4px 10px;border-radius:980px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-family:inherit;transition:all 0.1s}
+.filter-chip.active{background:var(--blue);color:#fff;border-color:transparent}
+.filter-sep{width:1px;height:20px;background:var(--border2);margin:0 2px}
+
+/* TABLE */
+.table-wrap{border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead th{background:var(--bg3);font-weight:500;text-align:left;padding:10px 12px;border-bottom:1px solid var(--border);color:var(--text2);white-space:nowrap;font-size:11px;letter-spacing:0.05em;text-transform:uppercase;cursor:pointer;user-select:none}
+thead th:hover{color:var(--text)}
+thead th .sort-icon{margin-left:4px;opacity:0.4;font-size:10px}
+thead th.sorted .sort-icon{opacity:1;color:var(--blue)}
+tbody tr{border-bottom:1px solid var(--border);transition:background 0.1s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:rgba(255,255,255,0.03)}
+tbody tr.row-crit td{background:rgba(255,69,58,0.06)}
+tbody tr.row-warn td{background:rgba(255,159,10,0.05)}
+tbody tr.row-crit:hover td,tbody tr.row-warn:hover td{filter:brightness(1.15)}
+tbody td{padding:8px 12px;color:var(--text);white-space:nowrap}
+td.muted{color:var(--text3)}
+td.num{text-align:right;font-variant-numeric:tabular-nums}
+
+/* BADGE */
+.badge{display:inline-flex;align-items:center;font-size:11px;font-weight:500;padding:2px 8px;border-radius:980px}
+.b-red{background:rgba(255,69,58,0.15);color:var(--red)}
+.b-amber{background:rgba(255,159,10,0.15);color:var(--amber)}
+.b-gray{background:rgba(255,255,255,0.07);color:var(--text2)}
+.po-tag{font-size:10px;font-weight:600;background:rgba(10,132,255,0.15);color:var(--blue);padding:1px 6px;border-radius:980px;margin-left:4px}
+
+/* OVERRIDE */
+.override-wrap{display:flex;align-items:center;gap:5px}
+.override-input{font-family:inherit;font-size:11px;padding:3px 7px;border-radius:6px;border:1px solid var(--border2);background:var(--bg3);color:var(--text);width:112px;outline:none}
+.override-input:focus{border-color:var(--blue)}
+.override-clear{font-size:11px;color:var(--red);cursor:pointer;border:none;background:none;font-family:inherit;padding:0 2px}
+.override-clear:hover{text-decoration:underline}
+
+/* PO NAME CELL */
+.po-name-input{font-family:inherit;font-size:11px;padding:3px 7px;border-radius:6px;border:1px solid transparent;background:transparent;color:var(--text2);width:110px;outline:none;transition:all 0.15s}
+.po-name-input:hover{border-color:var(--border2);background:var(--bg3)}
+.po-name-input:focus{border-color:var(--blue);background:var(--bg3);color:var(--text)}
+.po-name-input::placeholder{color:var(--text3)}
+
+.empty{text-align:center;padding:4rem;color:var(--text3);font-size:14px}
+.export-row{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:200;align-items:center;justify-content:center;backdrop-filter:blur(10px)}
+.modal-overlay.active{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:18px;padding:2rem;width:380px;max-width:90vw}
+.modal h2{font-size:17px;font-weight:500;margin-bottom:6px;letter-spacing:-0.3px}
+.modal p{font-size:13px;color:var(--text2);margin-bottom:1.25rem;line-height:1.5}
+.modal input[type=number]{width:100%;font-family:inherit;font-size:15px;padding:10px 14px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--bg3);color:var(--text);margin-bottom:1.25rem;outline:none}
+.modal input[type=number]:focus{border-color:var(--blue)}
+.modal-btns{display:flex;gap:8px;justify-content:flex-end}
+
+.row-count{font-size:12px;color:var(--text3);margin-left:auto}
+.col-filter-wrap{position:relative;display:inline-block}
+.col-filter-btn{background:none;border:none;color:var(--text3);cursor:pointer;font-size:11px;padding:2px 4px;border-radius:4px;line-height:1;vertical-align:middle}
+.col-filter-btn:hover,.col-filter-btn.active{color:var(--blue)}
+.col-filter-btn.active{color:var(--blue)}
+.col-dropdown{display:none;position:fixed;z-index:999;background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:8px;min-width:180px;box-shadow:0 8px 32px rgba(0,0,0,0.5)}
+.col-dropdown.open{display:block}
+.col-dropdown input{width:100%;font-family:inherit;font-size:12px;padding:5px 8px;border-radius:6px;border:1px solid var(--border2);background:var(--bg4);color:var(--text);outline:none;margin-bottom:6px}
+.col-dropdown input:focus{border-color:var(--blue)}
+.col-dropdown-opts{max-height:180px;overflow-y:auto}
+.col-opt{display:flex;align-items:center;gap:7px;padding:4px 6px;border-radius:6px;cursor:pointer;font-size:12px;color:var(--text2)}
+.col-opt:hover{background:var(--bg4);color:var(--text)}
+.col-opt input[type=checkbox]{accent-color:var(--blue);cursor:pointer}
+.col-clear{font-size:11px;color:var(--red);background:none;border:none;cursor:pointer;font-family:inherit;padding:2px 0;display:block;width:100%;text-align:left}
+.col-clear:hover{text-decoration:underline}
+.oc-tag{display:inline-block;font-size:10px;font-weight:600;padding:1px 6px;border-radius:980px;margin-left:3px}
+.oc-corpo{background:rgba(10,132,255,0.15);color:var(--blue)}
+.oc-ventas{background:rgba(50,215,75,0.15);color:var(--green)}
+.reminder-card{position:relative}
+.reminder-card::after{content:'';position:absolute;inset:0;border-radius:var(--radius);box-shadow:0 0 0 1px rgba(255,159,10,0.4);pointer-events:none}
+</style>
+</head>
+<body>
+<nav>
+  <div class="nav-logo">oneclick <span>/ compras</span></div>
+  <div class="nav-right">
+    <button class="btn" onclick="document.getElementById('fi').click()">Cargar Excel</button>
+    <button class="btn btn-solid" id="exp-btn" style="display:none" onclick="exportFile()">Exportar ↓</button>
+    <button class="btn" id="email-btn" style="display:none" onclick="sendWeeklyEmail()" title="Enviar resumen semanal por email">⏰ Email semana</button>
+  </div>
+</nav>
+<input type="file" id="fi" accept=".xlsx,.xls" style="display:none" onchange="handleFile(this)">
+
+<main>
+  <div class="upload-zone" id="uz" onclick="document.getElementById('fi').click()" ondragover="event.preventDefault()" ondrop="handleDrop(event)">
+    <div class="upload-icon"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
+    <h2>Subir archivo de órdenes</h2>
+    <p>Arrastrá tu Excel o hacé click &nbsp;·&nbsp; Columna D = proveedor</p>
+  </div>
+
+  <div id="main-content" style="display:none">
+
+    <!-- PO NAME BAR -->
+    <div class="po-bar">
+      <label>Nombre de PO global</label>
+      <input type="text" id="po-global-name" placeholder="Ej: PO-18000 — Ingram Q2" oninput="applyGlobalPO()">
+      <span class="po-hint">Se aplica a todas las líneas visibles sin nombre asignado</span>
+    </div>
+
+    <!-- PROV PANEL -->
+    <div class="panel">
+      <div class="section-title">Demora mínima por proveedor (días hábiles)</div>
+      <div class="prov-grid" id="prov-grid"></div>
+    </div>
+
+    <div class="stat-grid" id="summary"></div>
+
+    <!-- FILTERS -->
+    <div class="filters">
+      <div class="search-wrap">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="fq" placeholder="Buscar referencia, SKU, producto..." oninput="render()">
+      </div>
+      <div class="filter-sep"></div>
+      <select id="fp" onchange="render()"><option value="">Todos los proveedores</option></select>
+      <div class="filter-sep"></div>
+      <button class="filter-chip" data-status="all" onclick="setStatusFilter(this,'all')">Todas</button>
+      <button class="filter-chip active" data-status="overdue" onclick="setStatusFilter(this,'overdue')">Pasadas</button>
+      <button class="filter-chip" data-status="critical" onclick="setStatusFilter(this,'critical')">Crítico</button>
+      <button class="filter-chip" data-status="warning" onclick="setStatusFilter(this,'warning')">Advertencia</button>
+      <button class="filter-chip" data-status="late" onclick="setStatusFilter(this,'late')">Leve</button>
+      <button class="filter-chip" data-status="upcoming" onclick="setStatusFilter(this,'upcoming')">Próximas</button>
+      <button class="filter-chip" data-status="override" onclick="setStatusFilter(this,'override')">Manual</button>
+      <span class="row-count" id="row-count"></span>
+    </div>
+
+    <div class="table-wrap">
+      <table><thead><tr id="thead"></tr></thead><tbody id="tbody"></tbody></table>
+    </div>
+    <div class="export-row">
+      <button class="btn btn-solid" onclick="exportFile()">Exportar Excel ↓</button>
+    </div>
+  </div>
+</main>
+
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <h2>Nuevo proveedor</h2>
+    <p id="m-desc"></p>
+    <input type="number" id="m-input" placeholder="Cantidad de días" min="0" max="120">
+    <div class="modal-btns">
+      <button class="btn" onclick="skipModal()">Saltar</button>
+      <button class="btn btn-blue" onclick="confirmModal()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SK_LT='o_lead_v3',SK_OV='o_ov_v3',SK_PN='o_ponames_v3',SK_FILE='o_file_v3';
+let allRows=[],headers=[],provLT={},poOverrides={},poNames={},pending=[],curModal=null,activeStatus='overdue',sortCol=-1,sortAsc=true,colFilters={};
+
+const HIDE_COLS=new Set(['Movimientos de stock/Ubicación intermedia','Movimientos de stock/Distribución analítica']);
+
+// IndexedDB for file persistence
+const DB_NAME='oneclick_ordenes',DB_VER=1,STORE='files';
+let db=null;
+function openDB(){
+  return new Promise((res,rej)=>{
+    const req=indexedDB.open(DB_NAME,DB_VER);
+    req.onupgradeneeded=e=>{e.target.result.createObjectStore(STORE);};
+    req.onsuccess=e=>{db=e.target.result;res(db);};
+    req.onerror=()=>rej();
+  });
+}
+function saveFileToDB(arrayBuffer,name){
+  return openDB().then(db=>new Promise((res,rej)=>{
+    const tx=db.transaction(STORE,'readwrite');
+    tx.objectStore(STORE).put({buf:arrayBuffer,name,ts:Date.now()},SK_FILE);
+    tx.oncomplete=res;tx.onerror=rej;
+  }));
+}
+function loadFileFromDB(){
+  return openDB().then(db=>new Promise((res,rej)=>{
+    const tx=db.transaction(STORE,'readonly');
+    const req=tx.objectStore(STORE).get(SK_FILE);
+    req.onsuccess=e=>res(e.target.result||null);
+    req.onerror=()=>res(null);
+  }));
+}
+const SHORT={
+  'Movimientos de stock/Referencia':'Referencia',
+  'Movimientos de stock/Producto/Referencia interna':'SKU',
+  'Movimientos de stock/Producto/Nombre':'Producto',
+  'Movimientos de stock/Línea de movimiento/Contacto':'Proveedor',
+  'Movimientos de stock/Producto/Categoría del producto':'Categoría',
+  'Movimientos de stock/Producto/Marca':'Marca',
+  'Movimientos de stock/Documento origen':'Doc. Origen',
+  'Movimientos de stock/Cantidad real':'Qty',
+  'Movimientos de stock/Fecha para reservar':'Fecha Reserva',
+  'Movimientos de stock/Línea de la orden de compra/Referencia de la orden':'Ref. OC',
+  'Movimientos de stock/Línea de la orden de compra/Precio unitario':'P. Unit',
+  'Fecha original':'Fecha Orig.',
+  'Fecha límite':'Fecha Límite',
+  'Días vencido':'Días Venc.',
+  'Estado':'Estado',
+  'Fecha manual PO':'Fecha Manual',
+};
+function sn(h){return SHORT[h]||h;}
+
+function load(){
+  try{provLT=JSON.parse(localStorage.getItem(SK_LT)||'{}');}catch(e){provLT={}}
+  try{poOverrides=JSON.parse(localStorage.getItem(SK_OV)||'{}');}catch(e){poOverrides={}}
+  try{poNames=JSON.parse(localStorage.getItem(SK_PN)||'{}');}catch(e){poNames={}}
+}
+function save(){
+  try{localStorage.setItem(SK_LT,JSON.stringify(provLT));
+      localStorage.setItem(SK_OV,JSON.stringify(poOverrides));
+      localStorage.setItem(SK_PN,JSON.stringify(poNames));}catch(e){}
+}
+load();
+// Auto-restore: runs after DOM ready
+document.addEventListener('DOMContentLoaded', function(){
+  loadFileFromDB().then(function(saved){
+    if(!saved) return;
+    var data;
+    try{
+      var wb=XLSX.read(saved.buf,{type:'array',cellDates:true});
+      var ws=wb.Sheets[wb.SheetNames[0]];
+      data=XLSX.utils.sheet_to_json(ws,{header:1,raw:false,dateNF:'DD/MM/YYYY'});
+    } catch(e){ return; }
+    if(!data||!data.length) return;
+    // Banner
+    var d=document.createElement('div');
+    var ts=new Date(saved.ts).toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit',year:'numeric'});
+    d.style.cssText='display:flex;align-items:center;gap:10px;padding:10px 16px;background:#1c1c1e;border:1px solid rgba(255,255,255,0.12);border-radius:10px;margin-bottom:1rem;font-size:13px;color:#a1a1a6';
+    d.innerHTML='<span style="flex:1">📂 <strong style="color:#f5f5f7">'+saved.name+'</strong></span><span style="font-size:11px;color:#48484a">'+ts+'</span>';
+    var main=document.getElementById('main');
+    if(main) main.insertAdjacentElement('afterbegin',d);
+    loadData(data);
+  }).catch(function(){});
+});
+
+function handleDrop(e){e.preventDefault();if(e.dataTransfer.files[0])processFile(e.dataTransfer.files[0]);}
+function handleFile(i){if(i.files[0])processFile(i.files[0]);}
+
+function processFile(f){
+  const r=new FileReader();
+  r.onload=e=>{
+    const buf=e.target.result;
+    let data;
+    try{const wb=XLSX.read(buf,{type:'array',cellDates:true});const ws=wb.Sheets[wb.SheetNames[0]];data=XLSX.utils.sheet_to_json(ws,{header:1,raw:false,dateNF:'DD/MM/YYYY'});}
+    catch(err){alert('Error al leer: '+err.message);return;}
+    if(!data||!data.length){alert('Archivo vacío.');return;}
+    saveFileToDB(buf,f.name).catch(()=>{});
+    loadData(data);
+  };
+  r.onerror=()=>alert('No se pudo leer el archivo.');
+  r.readAsArrayBuffer(f);
+}
+function loadData(data){
+  headers=data[0]||[];
+  allRows=data.slice(1).filter(r=>r.some(c=>c!==undefined&&c!==''));
+  document.getElementById('uz').style.display='none';
+  document.getElementById('main-content').style.display='block';
+  document.getElementById('exp-btn').style.display='';
+  document.getElementById('email-btn').style.display='';
+  detectNew();
+}
+
+function visibleCols(){return headers.map((h,i)=>({h,i})).filter(({h})=>h&&!HIDE_COLS.has(h));}
+function getProvs(){const s=new Set();allRows.forEach(r=>{if(r[3])s.add(String(r[3]).trim())});return[...s].sort();}
+function detectNew(){pending=getProvs().filter(p=>!(p in provLT));buildProvPanel();pending.length?showNextModal():renderAll();}
+
+function showNextModal(){
+  if(!pending.length){document.getElementById('modal-overlay').classList.remove('active');renderAll();return;}
+  curModal=pending.shift();
+  document.getElementById('m-desc').textContent=`"${curModal}" es nuevo. ¿Cuántos días de demora mínima tiene?`;
+  document.getElementById('m-input').value='';
+  document.getElementById('modal-overlay').classList.add('active');
+}
+function confirmModal(){const v=parseInt(document.getElementById('m-input').value);if(isNaN(v)||v<0){alert('Ingresá un número válido');return;}provLT[curModal]=v;save();buildProvPanel();showNextModal();}
+function skipModal(){provLT[curModal]=0;save();buildProvPanel();showNextModal();}
+
+function buildProvPanel(){
+  const provs=getProvs();const grid=document.getElementById('prov-grid');const sel=document.getElementById('fp');
+  sel.innerHTML='<option value="">Todos los proveedores</option>';grid.innerHTML='';
+  provs.forEach(p=>{
+    const opt=document.createElement('option');opt.value=p;opt.textContent=p;sel.appendChild(opt);
+    const isNew=!(p in provLT)||provLT[p]===0;
+    const d=document.createElement('div');d.className='prov-row';
+    d.innerHTML=`<span class="prov-name" title="${p}">${p}</span>${isNew?'<span class="new-pill">NUEVO</span>':''}<input type="number" class="prov-input" min="0" max="120" value="${provLT[p]||''}" placeholder="—" data-prov="${p}" onchange="updateLT(this)"><span class="prov-label">días</span>`;
+    grid.appendChild(d);
+  });
+}
+function updateLT(inp){const p=inp.getAttribute('data-prov');const v=parseInt(inp.value);provLT[p]=isNaN(v)?0:v;save();renderAll();}
+
+function setStatusFilter(btn,status){
+  activeStatus=status;
+  document.querySelectorAll('.filter-chip').forEach(b=>b.classList.toggle('active',b.getAttribute('data-status')===status));
+  render();
+}
+
+function applyGlobalPO(){
+  const val=document.getElementById('po-global-name').value.trim();
+  if(!val)return;
+  // Apply to all visible rows that don't have a poName yet
+  const filtered=getFilteredRows();
+  filtered.forEach(({poKey})=>{
+    if(poKey&&!poNames[poKey]) poNames[poKey]=val;
+  });
+  save();render();
+}
+
+function parseDate(s){
+  if(!s)return null;if(s instanceof Date)return isNaN(s.getTime())?null:s;
+  const d=new Date(s);if(!isNaN(d.getTime()))return d;
+  const m=String(s).match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if(m)return new Date(+m[3],+m[2]-1,+m[1]);return null;
+}
+function getDateCols(){return headers.map((h,i)=>({h,i})).filter(({h})=>h&&/fecha|date|delivery|entrega|venc|plazo|sched|reservar/i.test(String(h))).map(x=>x.i);}
+function getETA(row){const dc=getDateCols();for(const ci of dc){const d=parseDate(row[ci]);if(d)return{date:d,colIdx:ci};}return null;}
+function getPOKey(row){const idx=headers.findIndex(h=>h&&/\bpo\b|orden|order|ref\b|number|n°|nro/i.test(String(h)));return idx>=0&&row[idx]?String(row[idx]).trim():null;}
+function daysDiff(d){const t=new Date();t.setHours(0,0,0,0);return Math.floor((t-d)/86400000);}
+function getStatus(days){if(days>30)return'critical';if(days>14)return'warning';if(days>0)return'late';return null;}
+function getEffectiveDate(row,poKey){
+  if(poKey&&poOverrides[poKey]){const d=parseDate(poOverrides[poKey]);if(d)return{date:d,source:'override'};}
+  const eta=getETA(row);if(eta)return{date:eta.date,source:'original'};return null;
+}
+function computeDueDate(row,poKey){
+  const prov=row[3]?String(row[3]).trim():'';
+  const eff=getEffectiveDate(row,poKey);if(!eff)return null;
+  const lt=provLT[prov]||0;const due=new Date(eff.date);due.setDate(due.getDate()+lt);
+  return{date:due,source:eff.source};
+}
+
+function getQtyIdx(){return headers.findIndex(h=>h&&/cantidad real|qty|quantity/i.test(String(h)));}
+
+function getFilteredRows(){
+  const fp=document.getElementById('fp').value;
+  const fq=(document.getElementById('fq').value||'').toLowerCase();
+  const qtyIdx=getQtyIdx();
+  return allRows.map(row=>{
+    if(qtyIdx>=0){const q=parseFloat(row[qtyIdx]);if(!isNaN(q)&&q===0)return null;}
+    const prov=row[3]?String(row[3]).trim():'';
+    const poKey=getPOKey(row);
+    const due=computeDueDate(row,poKey);
+    const days=due?daysDiff(due.date):null;
+    const isOverdue=days!==null&&days>0;
+    const status=isOverdue?getStatus(days):null;
+    const hasOverride=!!(poKey&&poOverrides[poKey]);
+    // daysUntil: positive = future, negative = past
+    const daysUntil=days!==null?-days:null;
+    return{row,prov,poKey,due,days,daysUntil,isOverdue,status,hasOverride};
+  }).filter(x=>{
+    if(!x||!x.due) return false;
+    // Proveedor
+    if(fp&&x.prov!==fp) return false;
+    // Búsqueda libre
+    if(fq&&!x.row.some(c=>c&&String(c).toLowerCase().includes(fq))) return false;
+    // Chip de estado
+    if(activeStatus==='overdue'&&!x.isOverdue) return false;
+    if(activeStatus==='upcoming'&&x.isOverdue) return false;
+    if(activeStatus==='override'&&!x.hasOverride) return false;
+    if(activeStatus==='critical'&&x.status!=='critical') return false;
+    if(activeStatus==='warning'&&x.status!=='warning') return false;
+    if(activeStatus==='late'&&x.status!=='late') return false;
+    // Filtros por columna
+    for(const [colLabel,vals] of Object.entries(colFilters)){
+      if(!vals||vals.size===0) continue;
+      const cv=getCellValForLabel(x.row,x,colLabel);
+      if(!vals.has(String(cv).trim())) return false;
+    }
+    return true;
+  }).sort((a,b)=>{
+    // overdue sorted by most days first, upcoming by soonest first
+    if(a.isOverdue&&b.isOverdue)return b.days-a.days;
+    if(!a.isOverdue&&!b.isOverdue)return a.daysUntil-b.daysUntil;
+    return a.isOverdue?-1:1; // overdue first
+  });
+}
+
+function renderAll(){buildProvPanel();renderSummary();render();}
+function renderSummary(){
+  const qtyIdx=getQtyIdx();
+  const rows=allRows.map(row=>{
+    if(qtyIdx>=0){const q=parseFloat(row[qtyIdx]);if(!isNaN(q)&&q===0)return null;}
+    const poKey=getPOKey(row);const due=computeDueDate(row,poKey);if(!due)return null;
+    const days=daysDiff(due.date);
+    return{days,isOverdue:days>0,hasOverride:!!(poKey&&poOverrides[poKey])};
+  }).filter(Boolean);
+  const total=rows.filter(x=>x.isOverdue).length;
+  const crit=rows.filter(x=>x.days>30).length;
+  const warn=rows.filter(x=>x.days>14&&x.days<=30).length;
+  const late=rows.filter(x=>x.days>0&&x.days<=14).length;
+  const upcoming=rows.filter(x=>!x.isOverdue).length;
+  const thisWeek=rows.filter(x=>!x.isOverdue&&x.days>=-7).length;
+  document.getElementById('summary').innerHTML=`
+    <div class="stat-card" style="cursor:pointer" onclick="setStatusFilter(document.querySelector('[data-status=overdue]'),'overdue')"><div class="stat-label">Pasadas</div><div class="stat-val red">${total}</div></div>
+    <div class="stat-card"><div class="stat-label">Críticas (+30d)</div><div class="stat-val red" style="font-size:20px">${crit}</div></div>
+    <div class="stat-card"><div class="stat-label">Advertencia (15–30d)</div><div class="stat-val amber" style="font-size:20px">${warn}</div></div>
+    <div class="stat-card"><div class="stat-label">Leve (1–14d)</div><div class="stat-val" style="font-size:20px">${late}</div></div>
+    <div class="stat-card" style="cursor:pointer" onclick="setStatusFilter(document.querySelector('[data-status=upcoming]'),'upcoming')"><div class="stat-label">Próximas</div><div class="stat-val blue">${upcoming}</div></div>
+    <div class="stat-card reminder-card" id="reminder-card" style="cursor:pointer;border-color:rgba(10,132,255,0.3)" onclick="setStatusFilter(document.querySelector('[data-status=upcoming]'),'upcoming')"><div class="stat-label">⏰ Vencen esta semana</div><div class="stat-val amber">${thisWeek}</div></div>`;
+  // Browser notification for this week
+  checkWeeklyReminder(thisWeek);
+}
+function fmtDate(d){if(!d)return'';try{return d.toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit',year:'numeric'});}catch(e){return String(d);}}
+
+function render(){
+  const filtered=getFilteredRows();
+  const vc=visibleCols();
+  document.getElementById('row-count').textContent=filtered.length?`${filtered.length} orden${filtered.length!==1?'es':''}`:'' ;
+
+  // Headers
+  const extraHdrs=['Nombre PO','Fecha Orig.','Fecha Límite','Días','Estado','Reclamo','Fecha Manual'];
+  const allHdrs=[...vc.map(({h},ci)=>({label:sn(h),ci,ei:-1})),...extraHdrs.map((h,ei)=>({label:h,ci:-1,ei}))];
+  document.getElementById('thead').innerHTML=allHdrs.map(({label,ci,ei})=>{
+    const isFiltered=colFilters[label]&&colFilters[label].size>0;
+    const sortId=ci>=0?ci:-(ei+10);
+    const sortIcon=`<span class="sort-icon">${sortCol===sortId?(sortAsc?'↑':'↓'):'↕'}</span>`;
+    const filterBtn=`<span class="col-filter-wrap"><button class="col-filter-btn${isFiltered?' active':''}" onclick="openColFilter(event,'${label}')" title="Filtrar">▾</button></span>`;
+    return`<th onclick="if(event.target.classList.contains('col-filter-btn')||event.target.closest('#col-filter-panel'))return;sortByCol(${ci},${ei})">${label}${sortIcon}${filterBtn}<div class="col-dropdown" id="cfd-${label.replace(/[^a-z0-9]/gi,'_')}"></div></th>`;
+  }).join('');
+
+  if(!filtered.length){
+    document.getElementById('tbody').innerHTML=`<tr><td colspan="${vc.length+extraHdrs.length}" class="empty">No hay órdenes pasadas con estos filtros</td></tr>`;
+    return;
+  }
+
+  document.getElementById('tbody').innerHTML=filtered.map(({row,poKey,due,days,daysUntil,isOverdue,status,hasOverride})=>{
+    const cls=status==='critical'?'row-crit':status==='warning'?'row-warn':'';
+    const cells=vc.map(({i,h})=>{
+      let v=row[i]||'';
+      const short=sn(h);
+      // Shorten Ref OC: extract (Corpo) or (Ventas) → show tag
+      if(short==='Ref. OC'&&v){
+        const vs=String(v);
+        const m=vs.match(/\((Corpo|Ventas)\)/i);
+        const tipo=m?m[1].charAt(0).toUpperCase()+m[1].slice(1).toLowerCase():'Ventas';
+        const isCorpo=tipo==='Corpo';
+        const tag=isCorpo?'<span class="oc-tag oc-corpo">Corpo</span>':'<span class="oc-tag oc-ventas">Ventas</span>';
+        const base=vs.replace(/\s*\([^)]*\)/g,'').trim();
+        v=tag;
+      }
+      const isNum=/qty|cantidad|precio|unit/i.test(short);
+      return`<td class="${isNum?'num':''}">${v}</td>`;
+    }).join('');
+    const origDate=fmtDate(getETA(row)?.date);
+    const effDate=fmtDate(due.date);
+    const dueDisplay=hasOverride?`${effDate}<span class="po-tag">manual</span>`:effDate;
+
+    // Days cell & badge — different for overdue vs upcoming
+    let dayCell,badge;
+    if(isOverdue){
+      badge=status==='critical'?'<span class="badge b-red">Crítico</span>':status==='warning'?'<span class="badge b-amber">Advertencia</span>':'<span class="badge b-gray">Leve</span>';
+      dayCell=`<td class="num" style="font-weight:600;color:var(--red)">+${days}d</td>`;
+    } else {
+      const soon=daysUntil!==null&&daysUntil<=7;
+      badge=`<span class="badge b-blue">${soon?'⏰ Esta semana':'Próxima'}</span>`;
+      dayCell=`<td class="num" style="font-weight:500;color:var(--blue)">${daysUntil!==null?daysUntil+'d':''}</td>`;
+    }
+
+    // Reminder cell: show reclamo date if overdue (7d from now by default, editable)
+    const reclKey=poKey?'recl_'+poKey:null;
+    const reclVal=reclKey&&poOverrides[reclKey]?poOverrides[reclKey]:'';
+    const reclCell=isOverdue&&poKey
+      ?`<td><div class="override-wrap"><input type="date" class="override-input" value="${reclVal}" data-po="${reclKey}" onchange="setOverride(this)" title="Fecha de reclamo">${reclVal?`<button class="override-clear" data-po="${reclKey}" onclick="clearOverride(this)">✕</button>`:''}</div></td>`
+      :`<td class="muted">—</td>`;
+
+    const ovVal=poKey&&poOverrides[poKey]?poOverrides[poKey]:'';
+    const ovCell=poKey
+      ?`<td><div class="override-wrap"><input type="date" class="override-input" value="${ovVal}" data-po="${poKey}" onchange="setOverride(this)">${ovVal?`<button class="override-clear" data-po="${poKey}" onclick="clearOverride(this)">✕</button>`:''}</div></td>`
+      :`<td class="muted">—</td>`;
+    const pnVal=poKey&&poNames[poKey]?poNames[poKey]:'';
+    const pnCell=poKey
+      ?`<td><input type="text" class="po-name-input" value="${pnVal.replace(/"/g,'&quot;')}" placeholder="Nombre PO..." data-po="${poKey}" onchange="setPOName(this)" onblur="setPOName(this)"></td>`
+      :`<td class="muted">—</td>`;
+    return`<tr class="${cls}">${cells}${pnCell}<td>${origDate}</td><td>${dueDisplay}</td>${dayCell}<td>${badge}</td>${reclCell}${ovCell}</tr>`;
+  }).join('');
+}
+
+function setPOName(inp){const po=inp.getAttribute('data-po');if(!po)return;const v=inp.value.trim();if(v)poNames[po]=v;else delete poNames[po];save();}
+function setOverride(inp){const po=inp.getAttribute('data-po');if(!po)return;poOverrides[po]=inp.value;save();renderAll();}
+function clearOverride(btn){const po=btn.getAttribute('data-po');if(!po)return;delete poOverrides[po];save();renderAll();}
+
+function sortByCol(ci,ei){
+  const id=ci>=0?ci:-(ei+10);
+  if(sortCol===id)sortAsc=!sortAsc;else{sortCol=id;sortAsc=true;}
+  render();
+}
+// keep old names for safety
+function sortBy(ci){sortByCol(ci,-1);}
+function sortByExtra(ei){sortByCol(-1,ei);}
+
+function getCellValForLabel(row, computed, label){
+  const vc=visibleCols();
+  // Extra cols
+  if(label==='Nombre PO') return computed.poKey&&poNames[computed.poKey]?poNames[computed.poKey]:'';
+  if(label==='Fecha Orig.') return fmtDate(getETA(row)?.date)||'';
+  if(label==='Fecha Límite') return computed.due?fmtDate(computed.due.date):'';
+  if(label==='Días') return computed.days!==null?String(computed.days):'';
+  if(label==='Estado'){
+    if(!computed.isOverdue) return computed.daysUntil!==null&&computed.daysUntil<=7?'Esta semana':'Próxima';
+    return computed.status==='critical'?'Crítico':computed.status==='warning'?'Advertencia':'Leve';
+  }
+  if(label==='Ref. OC'){
+    const col=vc.find(x=>sn(x.h)===label);
+    if(!col) return '';
+    const v=String(row[col.i]||'');
+    const m=v.match(/\((Corpo|Ventas)\)/i);
+    return m?m[1].charAt(0).toUpperCase()+m[1].slice(1).toLowerCase():'Ventas';
+  }
+  // Normal col
+  const col=vc.find(x=>sn(x.h)===label);
+  if(col) return String(row[col.i]||'');
+  return '';
+}
+
+function getUniqueColValues(label){
+  const qtyIdx=getQtyIdx();
+  const vals=new Set();
+  allRows.forEach(row=>{
+    if(qtyIdx>=0){const q=parseFloat(row[qtyIdx]);if(!isNaN(q)&&q===0)return;}
+    const poKey=getPOKey(row);
+    const due=computeDueDate(row,poKey);if(!due)return;
+    const days=daysDiff(due.date);
+    const daysUntil=-days;
+    const isOverdue=days>0;
+    const status=isOverdue?getStatus(days):null;
+    const hasOverride=!!(poKey&&poOverrides[poKey]);
+    const computed={row,prov:row[3]?String(row[3]).trim():'',poKey,due,days,daysUntil,isOverdue,status,hasOverride};
+    const v=getCellValForLabel(row,computed,label);
+    if(v!=='')vals.add(String(v).trim());
+  });
+  return [...vals].sort((a,b)=>a.localeCompare(b,'es'));
+}
+
+function openColFilter(e, label){
+  e.stopPropagation();
+  e.preventDefault();
+  var panel = document.getElementById('col-filter-panel');
+  if(!panel){
+    panel = document.createElement('div');
+    panel.id = 'col-filter-panel';
+    panel.style.cssText = 'display:none;position:fixed;z-index:9999;background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:10px;min-width:220px;box-shadow:0 8px 32px rgba(0,0,0,0.6)';
+    document.body.appendChild(panel);
+    // Close on outside click
+    document.addEventListener('click', function(ev){
+      if(panel.style.display!=='none' && !panel.contains(ev.target) && !ev.target.classList.contains('col-filter-btn')){
+        panel.style.display='none';
+      }
+    });
+  }
+  // Toggle if same label
+  if(panel.style.display!=='none' && panel.getAttribute('data-label')===label){
+    panel.style.display='none';
+    return;
+  }
+  panel.setAttribute('data-label', label);
+  // Clear and rebuild with DOM
+  panel.innerHTML = '';
+  // Title
+  var title = document.createElement('div');
+  title.style.cssText = 'font-size:11px;font-weight:600;color:var(--text2);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em';
+  title.textContent = label;
+  panel.appendChild(title);
+  // Search
+  var search = document.createElement('input');
+  search.type = 'text';
+  search.placeholder = 'Buscar...';
+  search.style.cssText = 'width:100%;font-family:inherit;font-size:12px;padding:5px 8px;border-radius:6px;border:1px solid var(--border2);background:var(--bg4);color:var(--text);outline:none;margin-bottom:6px;box-sizing:border-box';
+  panel.appendChild(search);
+  // Options container
+  var opts = document.createElement('div');
+  opts.style.cssText = 'max-height:200px;overflow-y:auto;margin-bottom:8px';
+  var current = colFilters[label] || new Set();
+  var allVals = getUniqueColValues(label);
+  if(allVals.length === 0){
+    var empty = document.createElement('div');
+    empty.style.cssText = 'font-size:12px;color:var(--text3);padding:4px 0';
+    empty.textContent = 'Sin valores';
+    opts.appendChild(empty);
+  }
+  allVals.forEach(function(v){
+    var lbl = document.createElement('label');
+    lbl.style.cssText = 'display:flex;align-items:center;gap:8px;padding:5px 4px;border-radius:6px;cursor:pointer;font-size:13px;color:var(--text2)';
+    var cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.checked = current.has(v);
+    cb.style.cssText = 'accent-color:var(--blue);cursor:pointer;width:14px;height:14px;flex-shrink:0';
+    // Direct event, no data attr needed
+    (function(val){
+      cb.addEventListener('change', function(){
+        toggleColFilter(label, val, cb.checked);
+      });
+    })(v);
+    lbl.appendChild(cb);
+    lbl.appendChild(document.createTextNode(' ' + v));
+    opts.appendChild(lbl);
+  });
+  panel.appendChild(opts);
+  // Search filter
+  search.addEventListener('input', function(){
+    var q = search.value.toLowerCase();
+    opts.querySelectorAll('label').forEach(function(l){
+      l.style.display = l.textContent.toLowerCase().includes(q) ? '' : 'none';
+    });
+  });
+  // Clear button
+  var clearBtn = document.createElement('button');
+  clearBtn.textContent = '✕ Limpiar filtro';
+  clearBtn.style.cssText = 'font-family:inherit;font-size:11px;color:var(--red);background:none;border:none;cursor:pointer;padding:0';
+  clearBtn.addEventListener('click', function(){ clearColFilter(label); });
+  panel.appendChild(clearBtn);
+  // Position
+  var rect = e.target.getBoundingClientRect();
+  panel.style.top = (rect.bottom + 4) + 'px';
+  panel.style.left = Math.min(rect.left, window.innerWidth - 230) + 'px';
+  panel.style.display = 'block';
+  search.focus();
+}
+
+// Close panel on outside click
+document.addEventListener('click',function(e){
+  const panel=document.getElementById('col-filter-panel');
+  if(panel&&!panel.contains(e.target)&&!e.target.classList.contains('col-filter-btn')){
+    panel.style.display='none';
+  }
+});
+
+function toggleColFilter(label, val, checked){
+  if(!colFilters[label]) colFilters[label]=new Set();
+  if(checked) colFilters[label].add(val);
+  else colFilters[label].delete(val);
+  if(colFilters[label].size===0) delete colFilters[label];
+  render();
+}
+
+function clearColFilter(label){
+  delete colFilters[label];
+  render();
+  document.querySelectorAll('.col-dropdown.open').forEach(d=>d.classList.remove('open'));
+}
+
+// Close dropdowns on outside click
+document.addEventListener('click',function(e){
+  if(!e.target.closest('.col-filter-wrap')&&!e.target.closest('.col-dropdown')){
+    document.querySelectorAll('.col-dropdown.open').forEach(d=>d.classList.remove('open'));
+  }
+});
+
+function checkWeeklyReminder(count){
+  // badge visual only, email sent manually
+}
+
+function buildEmailData(){
+  var qtyIdx=getQtyIdx();
+  var overdue=[], upcoming=[];
+  allRows.forEach(function(row){
+    if(qtyIdx>=0){var q=parseFloat(row[qtyIdx]);if(!isNaN(q)&&q===0)return;}
+    var poKey=getPOKey(row);
+    var due=computeDueDate(row,poKey);
+    if(!due)return;
+    var days=daysDiff(due.date);
+    var daysUntil=-days;
+    var prov=row[3]?String(row[3]).trim():'';
+
+    // Filter out Harman
+    if(/harman/i.test(prov)) return;
+
+    var skuIdx=headers.findIndex(function(h){return h&&/referencia interna|sku/i.test(String(h));});
+    var prodIdx=headers.findIndex(function(h){return h&&/producto.*nombre|^nombre/i.test(String(h));});
+    var docIdx=headers.findIndex(function(h){return h&&/documento origen/i.test(String(h));});
+    var ocIdx=headers.findIndex(function(h){return h&&/referencia de la orden|ref.*oc/i.test(String(h));});
+
+    // Corpo/Ventas from Ref OC column
+    var ocVal=ocIdx>=0?(row[ocIdx]||''):'';
+    var ocMatch=String(ocVal).match(/\((Corpo|Ventas)\)/i);
+    var tipo=ocMatch?ocMatch[1].charAt(0).toUpperCase()+ocMatch[1].slice(1).toLowerCase():'Ventas';
+
+    var entry={
+      sku:   skuIdx>=0?(row[skuIdx]||''):'',
+      producto: prodIdx>=0?(row[prodIdx]||''):'',
+      proveedor: prov,
+      doc:   docIdx>=0?(row[docIdx]||''):'',
+      fechaLimite: fmtDate(due.date),
+      days:  days,
+      daysUntil: daysUntil,
+      tipo: tipo
+    };
+    if(days>0) overdue.push(entry);
+    else if(daysUntil>=0&&daysUntil<=7) upcoming.push(entry);
+  });
+  overdue.sort(function(a,b){return b.days-a.days;});
+  upcoming.sort(function(a,b){return a.daysUntil-b.daysUntil;});
+  return {overdue:overdue, upcoming:upcoming};
+}
+
+function buildProviderHtml(prov, overdue, upcoming){
+  var MAX=20;
+  var d=new Date();var dd=String(d.getDate()).padStart(2,'0');var mm=String(d.getMonth()+1).padStart(2,'0');var yyyy=d.getFullYear();var today=dd+'-'+mm+'-'+yyyy;
+  var od=overdue.slice(0,MAX), odExtra=overdue.length-MAX;
+  var up=upcoming.slice(0,MAX);
+
+  function badge(tipo){
+    var col=tipo==='Corpo'?'#0a84ff':'#2e7d32';
+    var bg=tipo==='Corpo'?'#e6f1fb':'#eaf3de';
+    return '<span style="font-size:10px;font-weight:600;padding:1px 5px;border-radius:6px;background:'+bg+';color:'+col+'">'+tipo+'</span>';
+  }
+  function dias(r,isDue){
+    if(isDue) return '<b style="color:#c62828">+'+r.days+'d</b>';
+    if(r.daysUntil===0) return '<b style="color:#c62828">Hoy</b>';
+    if(r.daysUntil===1) return '<b style="color:#e65100">Mañ.</b>';
+    return '<b style="color:#2e7d32">'+r.daysUntil+'d</b>';
+  }
+  function tr(r,isDue,bg){
+    return '<tr style="background:'+bg+';font-size:11px">'
+      +'<td style="padding:5px 7px;border-bottom:1px solid #f0f0f0"><b>'+r.doc+'</b></td>'
+      +'<td style="padding:5px 7px;border-bottom:1px solid #f0f0f0;color:#555">'+r.sku+'</td>'
+      +'<td style="padding:5px 7px;border-bottom:1px solid #f0f0f0">'+r.producto+'</td>'
+      +'<td style="padding:5px 7px;border-bottom:1px solid #f0f0f0;text-align:center">'+badge(r.tipo)+'</td>'
+      +'<td style="padding:5px 7px;border-bottom:1px solid #f0f0f0;color:#555;white-space:nowrap">'+r.fechaLimite+'</td>'
+      +'<td style="padding:5px 7px;border-bottom:1px solid #f0f0f0;text-align:center">'+dias(r,isDue)+'</td>'
+      +'</tr>';
+  }
+  function th(txt,center){
+    return '<th style="padding:6px 7px;font-size:10px;color:#666;text-align:'+(center?'center':'left')+';white-space:nowrap;border-bottom:1px solid #ddd;background:#f5f5f3">'+txt+'</th>';
+  }
+  var thead='<thead><tr>'+th('Doc')+th('SKU')+th('Producto')+th('Tipo',1)+th('Fecha')+th('Días',1)+'</tr></thead>';
+
+  var s='<div style="font-family:Arial,sans-serif;max-width:680px;color:#1a1a1a">';
+  s+='<div style="background:#1a1a1a;padding:12px 16px;border-radius:6px 6px 0 0">';
+  s+='<b style="color:#fff;font-size:14px">oneclick</b><span style="color:#888;font-size:14px"> / '+prov+' — '+today+'</span>';
+  s+='</div>';
+  s+='<table style="width:100%;border-collapse:collapse;font-size:11px"><tr>';
+  s+='<td style="padding:8px 14px;background:#fff8f8;width:50%;border:1px solid #eee;border-top:none"><div style="font-size:10px;color:#aaa">VENCIDAS</div><div style="font-size:20px;color:#c62828;font-weight:300">'+overdue.length+'</div></td>';
+  s+='<td style="padding:8px 14px;background:#fffdf5;width:50%;border:1px solid #eee;border-top:none;border-left:none"><div style="font-size:10px;color:#aaa">ESTA SEMANA</div><div style="font-size:20px;color:#e65100;font-weight:300">'+upcoming.length+'</div></td>';
+  s+='</tr></table>';
+
+  if(od.length>0){
+    s+='<div style="background:#fff2f2;padding:7px 12px;font-size:11px;font-weight:600;color:#c62828;border-top:2px solid #ffcdd2">⚠️ VENCIDAS'+(odExtra>0?' — top '+MAX+' de '+overdue.length:' ('+overdue.length+')')+'</div>';
+    s+='<table style="width:100%;border-collapse:collapse">'+thead+'<tbody>';
+    od.forEach(function(r,i){ s+=tr(r,true,i%2===0?'#fff':'#fafafa'); });
+    s+='</tbody></table>';
+    if(odExtra>0) s+='<div style="padding:5px 10px;font-size:10px;color:#999;background:#fafafa">...+'+odExtra+' más en la app</div>';
+  }
+  if(up.length>0){
+    s+='<div style="background:#fff8f0;padding:7px 12px;font-size:11px;font-weight:600;color:#e65100;border-top:2px solid #ffe0b2;margin-top:8px">📅 ESTA SEMANA ('+upcoming.length+')</div>';
+    s+='<table style="width:100%;border-collapse:collapse">'+thead+'<tbody>';
+    up.forEach(function(r,i){ s+=tr(r,false,i%2===0?'#fff':'#fafafa'); });
+    s+='</tbody></table>';
+  }
+  s+='<div style="padding:8px 12px;background:#f5f5f3;border-radius:0 0 6px 6px;font-size:10px;color:#999">Recordá realizar los reclamos correspondientes.</div>';
+  s+='</div>';
+  return s;
+}
+
+function sendWeeklyEmail(){
+  var data=buildEmailData();
+  if(data.overdue.length===0 && data.upcoming.length===0){
+    alert('No hay órdenes vencidas ni próximas a vencer esta semana.');
+    return;
+  }
+  var btn=document.getElementById('email-btn');
+  btn.disabled=true;
+
+  // Group by provider
+  var byProv={};
+  data.overdue.forEach(function(r){
+    if(!byProv[r.proveedor]) byProv[r.proveedor]={overdue:[],upcoming:[]};
+    byProv[r.proveedor].overdue.push(r);
+  });
+  data.upcoming.forEach(function(r){
+    if(!byProv[r.proveedor]) byProv[r.proveedor]={overdue:[],upcoming:[]};
+    byProv[r.proveedor].upcoming.push(r);
+  });
+
+  var provs=Object.keys(byProv).sort();
+  var today=(function(){var _x=new Date();return String(_x.getDate()).padStart(2,'0')+'-'+String(_x.getMonth()+1).padStart(2,'0')+'-'+_x.getFullYear();})();
+
+  function sendNext(idx){
+    if(idx>=provs.length){
+      btn.textContent='✓ '+provs.length+' mail'+(provs.length>1?'s':'')+' enviado'+(provs.length>1?'s':'');
+      btn.style.background='rgba(50,215,75,0.15)';
+      btn.style.color='var(--green)';
+      btn.style.borderColor='rgba(50,215,75,0.3)';
+      setTimeout(function(){
+        btn.textContent='⏰ Email semana';
+        btn.style.background=''; btn.style.color=''; btn.style.borderColor='';
+        btn.disabled=false;
+      },4000);
+      return;
+    }
+    var prov=provs[idx];
+    var d=byProv[prov];
+    btn.textContent='Enviando '+(idx+1)+'/'+provs.length+': '+prov.substring(0,20)+'...';
+    var od=d.overdue.length, up=d.upcoming.length;
+    var subj='⏰ Oneclick — '+prov+' · '+od+' vencida'+(od!==1?'s':'')+', '+up+' esta semana — '+today;
+    var msg=buildProviderHtml(prov, d.overdue, d.upcoming);
+    emailjs.send('service_walgxez','template_3olr3ig',{message:msg,subject:subj})
+    .then(function(){
+      // Small delay between sends to avoid rate limiting
+      setTimeout(function(){ sendNext(idx+1); }, 600);
+    },function(err){
+      console.error('EmailJS error ('+prov+'):',err);
+      alert('Error en mail de '+prov+': '+(err.status||'?')+' — '+(err.text||JSON.stringify(err)));
+      btn.textContent='⏰ Email semana'; btn.disabled=false;
+    });
+  }
+  sendNext(0);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+// (click outside handler moved into openColFilter)
+
+
+
+// EXPORT — SheetJS community: sin estilos para evitar XML corrupto
+function exportFile(){
+  const filtered=getFilteredRows();
+  if(!filtered.length){alert('No hay filas para exportar.');return;}
+  const today=(function(){var _x=new Date();return String(_x.getDate()).padStart(2,'0')+'-'+String(_x.getMonth()+1).padStart(2,'0')+'-'+_x.getFullYear();})();
+  const vc=visibleCols();
+  function cv(v){
+    if(v===null||v===undefined)return'';
+    if(typeof v==='object'){if(v instanceof Date)return fmtDate(v);return String(v);}
+    if(typeof v==='string')return v;
+    return v;
+  }
+  const hdrs=[...vc.map(({h})=>sn(h)),'Nombre PO','Fecha Orig.','Fecha Límite','Días Venc.','Estado','Fecha Manual'];
+  const dataRows=filtered.map(({row,poKey,due,days,status,hasOverride})=>{
+    const cells=vc.map(({i})=>cv(row[i]));
+    const pnVal=(poKey&&poNames[poKey])?String(poNames[poKey]):'';
+    const origDate=fmtDate(getETA(row)?.date)||'';
+    const effDate=fmtDate(due.date)||'';
+    const daysNum=Number(days);
+    const lbl=status==='critical'?'Crítico':status==='warning'?'Advertencia':'Leve';
+    const manual=(poKey&&poOverrides[poKey])?String(poOverrides[poKey]):'';
+    return[...cells,pnVal,origDate,effDate,daysNum,lbl+(hasOverride?' ★':''),manual];
+  });
+  const qtyIdx=hdrs.indexOf('Qty');
+  const qtySum=qtyIdx>=0?dataRows.reduce((a,r)=>{const v=r[qtyIdx];return a+(typeof v==='number'?v:parseFloat(v)||0);},0):0;
+  const totRow=hdrs.map((_,i)=>i===0?'TOTAL':(i===qtyIdx?qtySum:''));
+  const aoa=[
+    [`Órdenes pasadas de fecha — Oneclick Compras · Exportado ${today}`],
+    hdrs,
+    ...dataRows,
+    totRow,
+  ];
+  const ws=XLSX.utils.aoa_to_sheet(aoa);
+  const wMap={'Referencia':14,'SKU':13,'Producto':38,'Proveedor':17,'Categoría':15,'Marca':9,'Doc. Origen':11,'Qty':7,'Fecha Reserva':13,'Ref. OC':17,'P. Unit':11,'Nombre PO':18,'Fecha Orig.':12,'Fecha Límite':12,'Días Venc.':9,'Estado':12,'Fecha Manual':13};
+  ws['!cols']=hdrs.map(h=>({wch:wMap[h]||12}));
+  ws['!autofilter']={ref:`A2:${XLSX.utils.encode_col(hdrs.length-1)}2`};
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'Órdenes Pasadas');
+  XLSX.writeFile(wb,'ordenes_pasadas_fecha.xlsx');
+}
+</script>
+</body>
+</html>
